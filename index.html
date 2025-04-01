@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Messenger</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #messages { max-width: 600px; margin: 20px auto; padding: 10px; border: 1px solid #ddd; height: 300px; overflow-y: auto; }
+        #inputBox { width: 60%; padding: 8px; }
+        #sendButton { padding: 8px; }
+    </style>
+</head>
+<body>
+    <h2>ESP32 Messenger</h2>
+    <div id="messages"></div>
+    <input type="text" id="inputBox" placeholder="Type your message..." />
+    <button id="sendButton">Send</button>
+
+    <script>
+        const ws = new WebSocket("ws://" + window.location.hostname + ":8765");
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            const messagesDiv = document.getElementById("messages");
+            messagesDiv.innerHTML += `<p><strong>${data.sender}:</strong> ${data.message}</p>`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        };
+
+        document.getElementById("sendButton").addEventListener("click", () => {
+            const inputBox = document.getElementById("inputBox");
+            const message = inputBox.value.trim();
+            if (message) {
+                ws.send(JSON.stringify({ sender: "Browser", message }));
+                inputBox.value = "";
+            }
+        });
+
+        document.getElementById("inputBox").addEventListener("keypress", (event) => {
+            if (event.key === "Enter") {
+                document.getElementById("sendButton").click();
+            }
+        });
+    </script>
+</body>
+</html>
